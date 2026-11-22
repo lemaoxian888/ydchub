@@ -2238,17 +2238,14 @@ local function createMainWindow()
 		Gui.DescendantAdded:Connect(applyFont)
 	end
 	mainWindow:EditOpenButton({
-		Title = "YDC HUB<font color='#00FF00'>y1.0</font>",
-		CornerRadius = UDim.new(1, 16),
-		StrokeThickness = 1.5,
-		Color = ColorSequence.new({
-			ColorSequenceKeypoint.new(0, Color3.fromHex("FF1493")),
-			ColorSequenceKeypoint.new(0.3, Color3.fromHex("FF69B4")),
-			ColorSequenceKeypoint.new(0.6, Color3.fromHex("FFB6C1")),
-			ColorSequenceKeypoint.new(1, Color3.fromHex("FFC0CB")),
-		}),
-		Draggable = true,
-	})
+    Title = "YDC HUB<font color='#00FF00'>y1.0</font>",
+    CornerRadius = UDim.new(0, 6),
+    StrokeThickness = 1.5,
+    Color = ColorSequence.new(
+        Color3.fromRGB(255, 255, 255)
+    ),
+    Draggable = true,
+})
 	local mainFrame = mainWindow.UIElements.Main
 	if mainFrame then
 		-- YDC 毛玻璃风格：半透明深色矩形面板，取消主窗口圆角
@@ -2277,7 +2274,7 @@ local function createMainWindow()
 	})
 	Home:Paragraph({
 		Title = "YDC HUB",
-		Desc = "圣奥里精简版",
+		Desc = "San Aurie",
 	})
 	Home:Paragraph({
 		Title = "角色设置",
