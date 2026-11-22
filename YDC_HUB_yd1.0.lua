@@ -1758,6 +1758,7 @@ local PlayerRuntime = {
 	bodyGyro = nil,
 	noclipConn = nil,
 	collisionCache = {},
+	flyVertical = 0,
 }
 local playerQuickGui
 local playerQuickButton
@@ -1883,12 +1884,15 @@ local function startWarpFly()
 		end
 		local move = PlayerControls and PlayerControls:GetMoveVector() or Vector3.zero
 		local direction = cam.CFrame.LookVector * - move.Z + cam.CFrame.RightVector * move.X
-		local vertical = 0
-		if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-			vertical = 1
-		elseif UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
-			vertical = - 1
-		end
+		local vertical = PlayerRuntime.flyVertical or 0
+
+if vertical == 0 then
+    if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+        vertical = 1
+    elseif UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
+        vertical = -1
+    end
+			end
 		local delta = (direction + Vector3.new(0, vertical, 0)) * PlayerConfig.flySpeed * dt
 		currentRoot.CFrame = currentRoot.CFrame + delta
 		currentRoot.AssemblyLinearVelocity = Vector3.zero
@@ -1931,12 +1935,15 @@ local function startPhysicalFly()
 		if PlayerRuntime.bodyVelocity and PlayerRuntime.bodyGyro then
 			local move = PlayerControls and PlayerControls:GetMoveVector() or Vector3.zero
 			local direction = cam.CFrame.LookVector * - move.Z + cam.CFrame.RightVector * move.X
-			local vertical = 0
-			if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-				vertical = 1
-			elseif UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
-				vertical = - 1
-			end
+			local vertical = PlayerRuntime.flyVertical or 0
+
+if vertical == 0 then
+    if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+        vertical = 1
+    elseif UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
+        vertical = -1
+    end
+				end
 			PlayerRuntime.bodyVelocity.Velocity = (direction + Vector3.new(0, vertical, 0)) * PlayerConfig.flySpeed
 			PlayerRuntime.bodyGyro.CFrame = cam.CFrame
 		end
@@ -2550,6 +2557,124 @@ local function createMainWindow()
 			PlayerConfig.infiniteJump = v
 		end
 	})
+	--========================================
+-- YDC HUB 飞天控制模块
+--========================================
+
+playerFlyToggle = PlayerTab:Toggle({
+    Title = "开启/关闭飞天",
+    Default = false,
+    Callback = function(v)
+        if v then
+            startPlayerFly()
+        else
+            stopPlayerFly()
+        end
+    end
+})
+
+PlayerTab:Slider({
+    Title = "飞行速度",
+    Value = {
+        Min = 10,
+        Max = 200,
+        Default = 30
+    },
+    Callback = function(v)
+        PlayerConfig.flySpeed = v
+    end
+})
+
+PlayerTab:Dropdown({
+    Title = "飞行模式",
+    Values = {
+        "传送",
+        "物理"
+    },
+    Value = "传送",
+    Callback = function(v)
+        PlayerConfig.flyMode = v
+
+        if PlayerConfig.flyEnabled then
+            stopPlayerFly()
+            startPlayerFly()
+        end
+    end
+})
+	local flyTouchGui
+
+local function createFlyTouch()
+    if flyTouchGui then
+        flyTouchGui:Destroy()
+    end
+
+    flyTouchGui = Instance.new("ScreenGui")
+    flyTouchGui.Name = "YDC_FlyTouch"
+    flyTouchGui.ResetOnSpawn = false
+    flyTouchGui.Parent = UI_PARENT or resolveGuiParent()
+
+    local function makeButton(name, text, pos, value)
+        local btn = Instance.new("TextButton")
+        btn.Name = name
+        btn.Size = UDim2.new(0, 65, 0, 48)
+        btn.Position = pos
+        btn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+        btn.BackgroundTransparency = 0.2
+        btn.TextColor3 = Color3.new(1, 1, 1)
+        btn.Text = text
+        btn.TextSize = 18
+        btn.Parent = flyTouchGui
+
+        local stroke = Instance.new("UIStroke")
+        stroke.Color = Color3.new(1, 1, 1)
+        stroke.Thickness = 1
+        stroke.Parent = btn
+
+        btn.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Touch
+            or input.UserInputType == Enum.UserInputType.MouseButton1 then
+                PlayerRuntime.flyVertical = value
+            end
+        end)
+
+        btn.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Touch
+            or input.UserInputType == Enum.UserInputType.MouseButton1 then
+                PlayerRuntime.flyVertical = 0
+            end
+        end)
+    end
+
+    makeButton(
+        "FlyUp",
+        "上升",
+        UDim2.new(1, -155, 1, -180),
+        1
+    )
+
+    makeButton(
+        "FlyDown",
+        "下降",
+        UDim2.new(1, -155, 1, -125),
+        -1
+    )
+end
+
+PlayerTab:Toggle({
+    Title = "显示手机升降按钮",
+    Default = false,
+    Callback = function(v)
+        if v then
+            createFlyTouch()
+        else
+            if flyTouchGui then
+                flyTouchGui:Destroy()
+                flyTouchGui = nil
+            end
+            PlayerRuntime.flyVertical = 0
+        end
+    end
+})
 	local Money = Section:Tab({
 		Title = "任务收益",
 	})
