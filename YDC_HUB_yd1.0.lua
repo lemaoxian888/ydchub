@@ -2227,7 +2227,7 @@ local function createMainWindow()
 		SideBarWidth = 200,
 		ScrollBarEnabled = true,
 		Background = nil,
-		BackgroundImageTransparency = 1,
+		BackgroundImageTransparency = 0.25,
 	})
 	isWindowOpen = true
 	local Gui = mainWindow.Parent
@@ -2255,6 +2255,31 @@ local function createMainWindow()
 })
 	local mainFrame = mainWindow.UIElements.Main
 	if mainFrame then
+		-- YDC HUB 自定义背景图片
+pcall(function()
+    local url = "https://cdn.html2.link/images/cLNzXwwC5UiqOo7NtsFpG/juACqgxSh3MUQYUGWWyR3.jpg"
+
+    assert(type(writefile) == "function", "不支持文件写入")
+
+    local data = game:HttpGet(url)
+    assert(type(data) == "string" and #data > 0, "图片下载失败")
+
+    writefile("YDC_HUB_bg.jpg", data)
+
+    local assetLoader = getcustomasset or getsynasset
+    assert(type(assetLoader) == "function", "不支持本地图片加载")
+
+    local bg = Instance.new("ImageLabel")
+    bg.Name = "YDC_CustomBackground"
+    bg.Size = UDim2.fromScale(1, 1)
+    bg.Position = UDim2.fromScale(0, 0)
+    bg.BackgroundTransparency = 1
+    bg.Image = assetLoader("YDC_HUB_bg.jpg")
+    bg.ImageTransparency = 0.25
+    bg.ScaleType = Enum.ScaleType.Crop
+    bg.ZIndex = 0
+    bg.Parent = mainFrame
+end)
 		-- YDC 毛玻璃风格：半透明深色矩形面板，取消主窗口圆角
 		mainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 		mainFrame.BackgroundTransparency = 0.18
@@ -3371,14 +3396,5 @@ PlayerTab:Toggle({
 		mainWindow = nil
 	end)
 end
-WindUI:Popup({
-	Title = "YDC HUB",
-	Content = "欢迎使用YDC HUB\n精简版",
-	Buttons = {
-		{
-			Title = "打开脚本",
-			Variant = "Primary",
-			Callback = createMainWindow,
-		}
-	}
-})
+createMainWindow()
+
